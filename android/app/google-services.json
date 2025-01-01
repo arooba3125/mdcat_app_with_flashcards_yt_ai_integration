@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "658910277587",
+    "project_id": "sharkemm",
+    "storage_bucket": "sharkemm.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:658910277587:android:f829c19ae55179c8f74926",
+        "android_client_info": {
+          "package_name": "com.example.my_sem_projrct"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3jimRPxHsLEs6oK38jX8XzD4H4TiIJeQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
