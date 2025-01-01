@@ -1,5 +1,8 @@
 // Importing necessary material design library for UI components.
 import 'package:flutter/material.dart';
+import 'package:my_sem_projrct/globals.dart';
+
+import '../database_helper.dart';
 
 // StatefulWidget allows for dynamic changes in the UI based on user interaction or data updates.
 class CustomCardPage extends StatefulWidget {
@@ -16,15 +19,16 @@ class _CustomCardPageState extends State<CustomCardPage> {
   final _imageController = TextEditingController(); // Controller for the optional image URL input.
 
   // Method to handle saving the card's data.
-  void _saveCard() {
-    final card = {
-      'title': _titleController.text, // Retrieves text from the title TextField.
-      'description': _descriptionController.text, // Retrieves text from the description TextField.
-    };
-
-    // Pops the current screen off the stack and passes the card data back to the previous screen.
-    Navigator.pop(context, card);
+  void _saveCard() async {
+    final dbHelper = DatabaseHelper();
+    await dbHelper.insertCard(
+        selectedChapter,
+        _titleController.text,
+        _descriptionController.text
+    );
+    Navigator.pop(context);
   }
+
 
   @override
   // Builds the UI elements for the custom card page.
@@ -42,7 +46,7 @@ class _CustomCardPageState extends State<CustomCardPage> {
             children: [
               TextField(
                 controller: _titleController, // Connects the TextField to the title controller.
-                decoration: InputDecoration(labelText: 'Title'), // Decoration for the title input field.
+                decoration: InputDecoration(labelText: 'Title',), // Decoration for the title input field.
               ),
               TextField(
                 controller: _descriptionController, // Connects the TextField to the description controller.

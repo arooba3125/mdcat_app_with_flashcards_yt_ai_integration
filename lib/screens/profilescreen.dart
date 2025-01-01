@@ -118,11 +118,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               ListTile(
-                leading: const Icon(Icons.home),  // Icon for the Home menu item.
-                title: const Text('Home'),  // Text for the Home menu item.
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const BackgroundImageWithContainerScreen())),
-              ),
-              ListTile(
                 leading: const Icon(Icons.school),  // Icon for the Learning menu item.
                 title: const Text('Start Learning'),  // Text for the Learning menu item.
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => SubjectSelectionScreen())),
@@ -173,15 +168,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     leading: const Icon(Icons.school, color: Color.fromRGBO(2, 19, 34, 1.0)),  // Icon for the learning link.
                     title: const Text('Start Learning', style: TextStyle(fontWeight: FontWeight.bold)),  // Text for the learning link.
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => SubjectSelectionScreen())),  // Navigate to learning screen on tap.
-                  ),
-                ),
-                Card(
-                  elevation: 5,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),  // Rounded corners for the card.
-                  child: ListTile(
-                    leading: const Icon(Icons.settings, color: Color.fromRGBO(2, 19, 34, 1.0)),  // Icon for settings.
-                    title: const Text('Settings', style: TextStyle(fontWeight: FontWeight.bold)),  // Text for settings.
-                    onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Settings feature is under development.'))),  // Placeholder for settings functionality.
                   ),
                 ),
               ],

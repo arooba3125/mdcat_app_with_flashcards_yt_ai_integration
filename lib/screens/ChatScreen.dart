@@ -81,7 +81,7 @@ class _ChatScreenState extends State<ChatScreen> {
         decoration: BoxDecoration(
           image: DecorationImage(
             colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.8), BlendMode.dstATop),
-            image: NetworkImage('https://example.com/background.jpg'),
+            image: NetworkImage('https://w0.peakpx.com/wallpaper/108/670/HD-wallpaper-black.jpg'),
             fit: BoxFit.cover,
           ),
         ),

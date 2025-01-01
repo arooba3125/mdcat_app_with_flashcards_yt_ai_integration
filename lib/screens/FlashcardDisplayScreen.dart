@@ -1,192 +1,120 @@
-// Importing necessary Flutter and Firestore packages.
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-import 'package:flip_card/flip_card.dart';  // For creating flip animations for cards.
-// Importing helper class for local database operations.
-import '../database_helper.dart';
-// Importing global variables for access throughout the application.
-import '../globals.dart' as globals;
-// Importing custom card widget for creating and managing cards.
-import 'customcard.dart';
+// Import necessary Flutter and Firestore packages.
+import 'package:cloud_firestore/cloud_firestore.dart'; // Access Firestore for remote data storage.
+import 'package:flutter/material.dart'; // Import Material widgets and functionality.
+import 'package:flip_card/flip_card.dart'; // Import for card flipping animations.
+import '../database_helper.dart'; // Local database helper for SQLite operations.
+import '../globals.dart' as globals; // Global variables for storing app-wide data.
+import 'customcard.dart'; // Importing custom card widget for creating and managing cards.
 
-// StatefulWidget allows for creating a stateful widget to manage state changes based on user interaction or data updates.
+// Defines a StatefulWidget to manage stateful data like the list of cards.
 class FlashcardDisplayScreen extends StatefulWidget {
   @override
-  _FlashcardDisplayScreenState createState() => _FlashcardDisplayScreenState();
+  _FlashcardDisplayScreenState createState() => _FlashcardDisplayScreenState(); // Creates state for this widget.
 }
 
-// State class for FlashcardDisplayScreen to manage the flashcards' data and interactions.
+// State class that contains the mutable state for FlashcardDisplayScreen.
 class _FlashcardDisplayScreenState extends State<FlashcardDisplayScreen> {
-  // List to store custom flashcards fetched from local storage.
-  List<Map<String, dynamic>> customCards = [];
+  List<Map<String, dynamic>> customCards = []; // List to store card data fetched from the local database.
+  int rebuildKey = 0; // Key to force re-builds of FutureBuilder.
 
   @override
-  // Initialize state, loading custom cards from local storage when the widget is inserted into the tree.
   void initState() {
     super.initState();
-    _loadCustomCards();  // Call method to load custom cards.
+    _loadCustomCards(); // Calls method to load cards from the database when the widget initializes.
   }
 
-  // Asynchronous method to fetch custom cards from local storage using the DatabaseHelper.
+  // Async method to load custom cards from the database.
   Future<void> _loadCustomCards() async {
-    final dbHelper = DatabaseHelper();  // Instance of database helper.
-    final cards = await dbHelper.getCards(globals.selectedChapter);  // Fetching cards by chapter.
+    final dbHelper = DatabaseHelper(); // Create instance of database helper.
+    final cards = await dbHelper.getCards(globals.selectedChapter); // Fetch cards from the specified chapter.
     setState(() {
-      customCards = cards;  // Update the state with fetched cards.
+      customCards = cards; // Update state to refresh UI with new cards.
     });
   }
 
-  // Asynchronous method to fetch flashcards from Firestore.
+  // Async method to fetch cards from Firestore and locally.
   Future<List<Widget>> _fetchFlashcards() async {
+    List<Widget> flashcards = []; // List to hold card widgets.
+    // Fetch Firestore collection of cards.
     final snapshot = await FirebaseFirestore.instance
         .collection(globals.selectedSubject)
         .doc(globals.selectedChapter)
         .collection(globals.selectedLearningType)
-        .get();  // Firestore query to fetch flashcards by subject, chapter, and learning type.
+        .get();
 
-    List<Widget> flashcards = [];  // List to store flashcard widgets.
-
-    // Iterate over each document in the snapshot.
+    // Iterate over each document in Firestore and add to flashcards list.
     for (var doc in snapshot.docs) {
-      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;  // Data of the document.
-      String front = data['front'] ?? 'No front data';  // Front text of the card, default if missing.
-      String back = data['back'] ?? 'No back data';  // Back text of the card, default if missing.
-
-      // Add a widget for the flashcard.
-      flashcards.add(_buildFlashcard(front, back));
+      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      flashcards.add(_buildFlashcard(data['front'] ?? 'No front data', data['back'] ?? 'No back data'));
     }
 
-    // Add custom cards from local storage to the list.
+    // Add custom cards stored locally to the flashcards list.
     for (var card in customCards) {
       flashcards.add(_buildCustomFlashcard(card['front'], card['back'], card['id']));
     }
 
-    return flashcards;  // Return the list of flashcard widgets.
+    return flashcards; // Return the complete list of flashcard widgets.
   }
 
-  // Widget to build a standard flashcard with a flip animation.
+  // Build a widget for a single flashcard using flip card animation.
   Widget _buildFlashcard(String front, String back) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 15.0),
-        child: FlipCard(
-          direction: FlipDirection.HORIZONTAL,  // Direction of the flip animation.
-          front: Card(
-            elevation: 8,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            color: Color.fromRGBO(88, 117, 156, 50),  // Color of the front of the card.
-            child: Container(
-              padding: EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    front,
-                    style: TextStyle(fontSize: 25, fontFamily: "Orbitron", color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          back: Card(
-            elevation: 10,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            color: Colors.blueGrey,  // Color of the back of the card.
-            child: Container(
-              padding: EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    back,
-                    style: TextStyle(fontSize: 25, fontFamily: "Orbitron", color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+    return FlipCard(
+      direction: FlipDirection.HORIZONTAL, // Set flip direction to horizontal.
+      front: Card(child: ListTile(title: Text(front,style: TextStyle(fontFamily: 'Orbitron',
+      ),))), // Front face of the card.
+      back: Card(child: ListTile(title: Text(back,style: TextStyle(fontFamily: 'Orbitron',
+      ),))), // Back face of the card.
     );
   }
 
-  // Widget to build a custom flashcard that can be dismissed.
+  // Build a dismissible widget for a custom flashcard.
   Widget _buildCustomFlashcard(String front, String back, int id) {
     return Dismissible(
-      key: UniqueKey(),  // Unique key for Dismissible.
-      direction: DismissDirection.endToStart,  // Dismiss direction from right to left.
+      key: Key(id.toString()), // Unique key for Dismissible to identify each card.
       onDismissed: (direction) async {
         final dbHelper = DatabaseHelper();
-        await dbHelper.deleteCard(id);  // Delete card from database upon dismissal.
-        setState(() {
-          customCards.removeWhere((card) => card['id'] == id);  // Remove card from the list.
-        });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Card deleted')));
+        await dbHelper.deleteCard(id); // Delete the card from the database when dismissed.
+        _loadCustomCards(); // Reload the cards from database after one is deleted.
       },
-      background: Container(
-        color: Colors.red,
-        alignment: Alignment.centerRight,
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        child: Icon(Icons.delete, color: Colors.white),
-      ),
-      child: _buildFlashcard(front, back),  // Child is a regular flashcard widget.
+      child: _buildFlashcard(front, back), // Child is the flashcard to be displayed.
     );
   }
 
-  // Method to navigate to the custom card creation page.
+  // Navigate to the custom card creation page and handle the result.
   void _navigateToCustomCardPage() async {
-    final result = await Navigator.push(
+    await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => CustomCardPage(),
-      ),
+      MaterialPageRoute(builder: (context) => CustomCardPage()), // Navigate to the card creation screen.
     );
-
-    // Check if a result was returned and insert the new card into the database.
-    if (result != null && result is Map<String, String>) {
-      final dbHelper = DatabaseHelper();
-      await dbHelper.insertCard(globals.selectedChapter, result['title']!, result['description']!);
-      _loadCustomCards();  // Reload custom cards from database.
-    }
+    setState(() {
+      rebuildKey++; // Increment key to force FutureBuilder to rebuild.
+      _loadCustomCards(); // Reload cards upon return from card creation screen.
+    });
   }
 
   @override
-  // Builds the UI for the flashcard display screen.
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('${globals.selectedChapter} - ${globals.selectedLearningType}',
-            style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color.fromRGBO(2, 19, 34, 1.0),
-      ),
+      appBar: AppBar(title: Text('${globals.selectedChapter} - ${globals.selectedLearningType}')), // App bar with dynamic title.
       body: FutureBuilder<List<Widget>>(
-        future: _fetchFlashcards(),  // Fetch flashcards asynchronously.
+        key: ValueKey(rebuildKey), // Use a key to force rebuild of FutureBuilder.
+        future: _fetchFlashcards(), // Future that loads flashcards.
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());  // Show loading indicator.
+            return Center(child: CircularProgressIndicator()); // Show loading indicator while data loads.
           }
-
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));  // Show error message.
+            return Center(child: Text('Error: ${snapshot.error}')); // Display error if one occurs.
           }
-
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No flashcards available.'));  // Show message if no cards are available.
+            return Center(child: Text('No flashcards available.')); // Display message if no data is available.
           }
-
-          return ListView(
-            children: snapshot.data!,  // Display the list of flashcards.
-          );
+          return ListView(children: snapshot.data!); // Display list of flashcards.
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _navigateToCustomCardPage,  // Navigate to the custom card page on button press.
-        backgroundColor: Color.fromRGBO(2, 19, 34, 1.0),
-        child: Icon(Icons.add),  // Icon for adding a new card.
+        onPressed: _navigateToCustomCardPage, // Button to navigate to the card creation page.
+        child: Icon(Icons.add), // Icon for the button.
       ),
     );
   }
